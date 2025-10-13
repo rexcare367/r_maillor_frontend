@@ -10,7 +10,7 @@ const useAxiosAuth = () => {
     useEffect(() => {
         const requestIntercept = axiosAuth.interceptors.request.use(async (config) => {
             const { data: session} = await supabase.auth.getSession();
-            let accessToken = session?.session?.access_token;
+            const accessToken = session?.session?.access_token;
             
             if (!config.headers['Authorization']) {
                 config.headers['Authorization'] = `bearer ${accessToken}`
@@ -22,7 +22,7 @@ const useAxiosAuth = () => {
         return () => {
             axiosAuth.interceptors.request.eject(requestIntercept);
         }
-    }, [])
+    }, [supabase.auth])
 
     return axiosAuth;
 }

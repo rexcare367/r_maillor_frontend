@@ -3,18 +3,19 @@
 import useAxiosAuth from "@/lib/hooks/useAxiosAuth";
 import { getSupabaseFrontendClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
+import type { User } from "@supabase/supabase-js";
 
 export default function DashboardPage() {
     const router = useRouter();
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<User | null>(null);
     const supabase = getSupabaseFrontendClient();
     const axiosAuth = useAxiosAuth();
 
-    const getProtectedData = async () => {
+    const getProtectedData = useCallback(async () => {
         const response = await axiosAuth.get('/protected');
         console.log('Protected data:', response.data);
-    }
+    }, [axiosAuth]);
 
     useEffect(() => {
         const checkSession = async () => {
@@ -29,7 +30,7 @@ export default function DashboardPage() {
             }
         }
         checkSession();
-    }, []);
+    }, [getProtectedData, router, supabase.auth]);
 
     const logout = async () => {
         await supabase.auth.signOut();
