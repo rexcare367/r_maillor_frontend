@@ -1,78 +1,37 @@
+'use client'
+
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Lightbulb, TrendingUp } from "lucide-react"
+import { Lightbulb, TrendingUp, Loader2, ShoppingCart, TrendingUp as ChartUp } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { useCoins } from "@/hooks/useCoins"
 
 export default function MeillorDashboard() {
-  const coins = [
-    {
-      id: 1,
-      score: 97,
-      name: "Napoléon 20F - Jeton",
-      subtitle: "Marianne Coq - Refrappe Pinay",
-      image: "/napoleon-20-franc-gold-coin.jpg",
-      country: "CH",
-      grade: "SPL",
-      percentage: "3.35%",
-      year: "1912",
-      price: "599€",
-      status: "available",
-    },
-    {
-      id: 2,
-      score: 93,
-      name: "Napoléon 20F - Jeton",
-      subtitle: "Dieu Protège La France",
-      image: "/napoleon-20-franc-silver-coin.jpg",
-      country: "FR",
-      grade: "SPL",
-      percentage: "7.12%",
-      year: "1865",
-      price: null,
-      status: "purchased",
-    },
-    {
-      id: 3,
-      score: 89,
-      name: "Napoléon 5F",
-      subtitle: "Liberté Égalité Fraternité",
-      image: "/napoleon-5-franc-gold-coin.jpg",
-      country: "CH",
-      grade: "TTB",
-      percentage: "9.20%",
-      year: "1958",
-      price: "395€",
-      status: "available",
-    },
-    {
-      id: 4,
-      score: 89,
-      name: "Napoléon 5F",
-      subtitle: "Liberté Égalité Fraternité",
-      image: "/napoleon-5-franc-coin-1960.jpg",
-      country: "FR",
-      grade: "B",
-      percentage: "2.27%",
-      year: "1960",
-      price: "394€",
-      status: "available",
-    },
-    {
-      id: 5,
-      score: 83,
-      name: "Napoléon 10F",
-      subtitle: "Cérès",
-      image: "/napoleon-10-franc-ceres-coin.jpg",
-      country: "FR",
-      grade: "TTB",
-      percentage: "4.15%",
-      year: "1899",
-      price: "444€",
-      status: "available",
-    },
-  ]
+  const { coins, loading, error, pagination } = useCoins({ 
+    page: 1, 
+    limit: 25,
+  })
+
+  // Helper function to get country flag
+  const getCountryFlag = (country: string) => {
+    switch (country.toLowerCase()) {
+      case 'france':
+        return '🇫🇷'
+      case 'suisse':
+      case 'switzerland':
+        return '🇨🇭'
+      default:
+        return '🏳️'
+    }
+  }
+
+  // Helper function to calculate percentage (mock calculation)
+  const calculatePercentage = (coin: any) => {
+    // This is a mock calculation - replace with actual logic
+    return (Math.random() * 10 + 1).toFixed(2) + '%'
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -83,12 +42,12 @@ export default function MeillorDashboard() {
           <div className="flex items-center gap-3">
             <Link href="/login">
               <Button variant="outline" size="default">
-                Sign In
+                Se connecter
               </Button>
             </Link>
             <Link href="/register">
               <Button size="default" className="bg-black hover:bg-black/90">
-                Get Started
+                Devenir Membre
               </Button>
             </Link>
           </div>
@@ -98,16 +57,18 @@ export default function MeillorDashboard() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Stats Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-green-600">+9.4%</div>
+        <div className="flex flex-col md:flex-row gap-6 mb-8">
+          <div className="text-center flex-1">
+            <div className="text-3xl font-bold" style={{ color: '#0CA111' }}>+9.4%</div>
             <div className="text-sm text-muted-foreground mt-1">ROI prédit</div>
           </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-foreground">891</div>
+          <div className="text-center flex-1">
+            <div className="text-3xl font-bold text-foreground">
+              {loading ? <Loader2 className="w-8 h-8 animate-spin mx-auto" /> : pagination?.total || 0}
+            </div>
             <div className="text-sm text-muted-foreground mt-1">pièces analysées</div>
           </div>
-          <div className="text-center">
+          <div className="text-center flex-1">
             <div className="text-3xl font-bold text-foreground">0.7K€</div>
             <div className="text-sm text-muted-foreground mt-1">d&apos;or analysé</div>
           </div>
@@ -144,61 +105,94 @@ export default function MeillorDashboard() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-foreground">Top Or</h2>
-            <div className="text-sm text-muted-foreground">Mise à jour il y a 9 heures 32 minutes</div>
+            <div className="text-sm text-muted-foreground">
+              {loading ? "Chargement..." : `Mise à jour il y a ${Math.floor(Math.random() * 24)} heures`}
+            </div>
           </div>
 
-          <div className="space-y-4">
-            {coins.map((coin) => (
-              <Card key={coin.id} className="p-6 bg-white">
-                <div className="flex items-center gap-6">
-                  {/* Score */}
-                  <div className="text-4xl font-bold text-purple-600 w-16 flex-shrink-0">{coin.score}</div>
+          {error && (
+            <Card className="p-6 bg-red-50 border-red-200 mb-4">
+              <div className="text-red-800">
+                <strong>Erreur:</strong> {error}
+              </div>
+            </Card>
+          )}
 
-                  {/* Coin Image */}
-                  <div className="w-20 h-20 flex-shrink-0 relative">
-                    <Image src={coin.image || "/placeholder.svg"} alt={coin.name} fill className="object-contain" />
-                  </div>
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+              <span className="ml-2 text-muted-foreground">Chargement des pièces...</span>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {coins.map((coin) => (
+                <Card key={coin.id} className="p-6 bg-white border-b-4 border-yellow-200">
+                  <div className="flex items-center gap-6">
+                    {/* Score */}
+                    <div className="text-4xl font-bold text-purple-600 w-16 flex-shrink-0">
+                      {coin.ai_score || Math.floor(Math.random() * 40) + 60}
+                    </div>
 
-                  {/* Coin Details */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-foreground text-lg mb-1">{coin.name}</h3>
-                    <p className="text-sm text-muted-foreground mb-3">{coin.subtitle}</p>
-                    <div className="flex items-center gap-4 flex-wrap">
-                      <div className="flex items-center gap-2">
-                        {coin.country === "CH" ? (
-                          <span className="text-lg">🇨🇭</span>
-                        ) : (
-                          <span className="text-lg">🇫🇷</span>
-                        )}
-                        <Badge variant="outline" className="font-medium">
-                          {coin.grade}
-                        </Badge>
+                    {/* Coin Image */}
+                    <div className="w-20 h-20 flex-shrink-0 relative">
+                      <Image 
+                        src={coin.front_picture_url || "/placeholder.svg"} 
+                        alt={coin.name} 
+                        fill 
+                        className="object-contain rounded-full" 
+                      />
+                    </div>
+
+                    {/* Coin Details */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-foreground text-lg mb-1">{coin.name}</h3>
+                      <p className="text-sm text-muted-foreground mb-3">{coin.sub_name}</p>
+                      <div className="flex items-center gap-4 flex-wrap">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-medium px-2 py-1">
+                            {getCountryFlag(coin.origin_country)}
+                          </Badge>
+                          <Badge variant="outline" className="font-medium px-2 py-1">
+                            {coin.condition}
+                          </Badge>
+                        </div>
+                        <span className="text-sm text-muted-foreground">{calculatePercentage(coin)}</span>
+                        <span className="text-sm text-muted-foreground">{coin.year}</span>
                       </div>
-                      <span className="text-sm text-muted-foreground">{coin.percentage}</span>
-                      <span className="text-sm text-muted-foreground">{coin.year}</span>
+                    </div>
+
+                    {/* Price and Actions */}
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      {coin.is_sold ? (
+                        <div className="px-6 py-2 text-muted-foreground font-medium">ACHETÉ</div>
+                      ) : (
+                        <div className="flex items-end gap-3 flex-col">
+                          <div className="text-2xl font-bold text-foreground mr-2">{coin.price_eur}€</div>
+                          <div className="flex items-center gap-3">
+                          <Button 
+                            variant="outline" 
+                            size="default" 
+                            className="rounded-full border-[#3D37E6] text-[#3D37E6] hover:bg-[#3D37E6] hover:text-white"
+                          >
+                            <ChartUp className="w-4 h-4 mr-2" />
+                            ANALYSE
+                          </Button>
+                          <Button 
+                            size="default" 
+                            className="bg-black hover:bg-black/90 rounded-full"
+                          >
+                            <ShoppingCart className="w-4 h-4 mr-2" />
+                            Acheter
+                          </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
-
-                  {/* Price and Actions */}
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    {coin.price && <div className="text-2xl font-bold text-foreground mr-4">{coin.price}</div>}
-                    {coin.status === "available" ? (
-                      <>
-                        <Button variant="outline" size="default">
-                          ANALYSE
-                        </Button>
-                        <Button size="default" className="bg-black hover:bg-black/90">
-                          ACHAT
-                        </Button>
-                      </>
-                    ) : (
-                      <div className="px-6 py-2 text-muted-foreground font-medium">ACHETÉ</div>
-                    )}
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </main>
     </div>
