@@ -30,6 +30,7 @@ export default function MeillorDashboard() {
   // Helper function to calculate percentage (mock calculation)
   const calculatePercentage = (coin: any) => {
     // This is a mock calculation - replace with actual logic
+    console.log('coin', coin)
     return (Math.random() * 10 + 1).toFixed(2) + '%'
   }
 
