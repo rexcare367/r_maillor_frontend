@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Lightbulb, TrendingUp, Loader2, ShoppingCart, TrendingUp as ChartUp } from "lucide-react"
-import Image from "next/image"
 import Link from "next/link"
 import { useCoins } from "@/hooks/useCoins"
 
@@ -136,10 +135,9 @@ export default function MeillorDashboard() {
 
                     {/* Coin Image */}
                     <div className="w-20 h-20 flex-shrink-0 relative">
-                      <Image 
+                      <img 
                         src={coin.front_picture_url || "/placeholder.svg"} 
                         alt={coin.name} 
-                        fill 
                         className="object-contain rounded-full" 
                       />
                     </div>
