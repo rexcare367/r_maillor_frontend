@@ -33,16 +33,16 @@ const StatsSection: React.FC<StatsSectionProps> = ({
   ]
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 mb-8">
+    <div className="flex flex-row gap-6 mb-8">
       {stats.map((stat, index) => (
         <div key={index} className="text-center flex-1">
           <div 
-            className="text-3xl font-bold" 
+            className="text-xl md:text-3xl font-bold" 
             style={{ color: stat.color }}
           >
             {stat.value}
           </div>
-          <div className="text-sm text-muted-foreground mt-1">
+          <div className="text-xs md:text-sm text-muted-foreground mt-1">
             {stat.label}
           </div>
         </div>

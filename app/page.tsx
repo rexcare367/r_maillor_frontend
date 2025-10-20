@@ -29,17 +29,17 @@ export default function MeillorDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
+      <header className="bg-white border-b border-gold-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <h1 className="text-xl font-bold text-foreground">Meillor</h1>
           <div className="flex items-center gap-3">
             <Link href="/login">
-              <Button variant="outline" size="default">
+              <Button variant="outline" size="default" className="hover:bg-gold-50 hover:border-gold-500">
                 Se connecter
               </Button>
             </Link>
             <Link href="/register">
-              <Button size="default" className="bg-black hover:bg-black/90">
+              <Button size="default" className="bg-black hover:bg-gold-500 hover:text-black">
                 Devenir Membre
               </Button>
             </Link>
@@ -56,7 +56,7 @@ export default function MeillorDashboard() {
         <AlertSlider />
 
         {/* Top Or Section */}
-        <div>
+        <div className="mt-10">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-foreground">Top Or</h2>
             <div className="text-sm text-muted-foreground">

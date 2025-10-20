@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Star } from "lucide-react"
+import { Star, Search, ShoppingCart } from "lucide-react"
 import { CountryFlag } from "./CountryFlag"
 
 interface CoinCardItemProps {
@@ -33,84 +33,116 @@ export default function CoinCardItem({ coin, onAnalyze, onBuy }: CoinCardItemPro
   const premium = coin.premium || Math.random() * 5 + 1
 
   return (
-    <Card className="bg-white rounded-lg overflow-hidden">
-      <div className="flex items-center gap-4 p-4">
-        {/* Coin Image - Small */}
-        <div className="w-16 h-16 flex-shrink-0">
+    <Card className="bg-white rounded-lg overflow-hidden p-6 max-w-sm">
+      {/* Top Section */}
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-lg font-bold text-gray-800">#{coin.ranking || 1}</span>
+        <div className="text-xl font-bold text-blue-600">
+          {coin.ai_score || Math.floor(Math.random() * 40) + 60}/100
+        </div>
+        <Star className="w-5 h-5 text-gray-400 stroke-gray-400 fill-none hover:text-gold-400 hover:fill-gold-200" />
+      </div>
+
+      {/* Coin Title and Subtitle */}
+      <div className="text-center">
+        <h3 className="text-xl font-bold text-amber-800 mb-1">{coin.name}</h3>
+        <p className="text-sm text-gray-600">{coin.sub_name}</p>
+      </div>
+
+      {/* Coin Image */}
+      <div className="flex justify-center">
+        <div className="w-32 h-32 rounded-full overflow-hidden">
           <img 
             src={coin.front_picture_url || "/placeholder.svg"} 
             alt={coin.name} 
-            className="w-full h-full object-contain rounded-full" 
+            className="w-full h-full object-cover" 
           />
         </div>
-        
-        {/* Main Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between mb-2">
-            <div>
-              <h3 className="text-lg font-bold text-amber-800 truncate">{coin.name}</h3>
-              <p className="text-xs text-gray-600 truncate">{coin.sub_name}</p>
-            </div>
-            <div className="flex items-center gap-2 ml-2">
-              <span className="text-xs text-gray-600">#{coin.ranking || 1}</span>
-              <Star className="w-4 h-4 text-yellow-400 stroke-yellow-400 fill-none" />
-            </div>
-          </div>
-          
-          {/* Price and Score */}
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-xl font-bold text-black">{coin.price_eur}€</div>
-            <div className="text-lg font-bold text-purple-600">
-              {coin.ai_score || Math.floor(Math.random() * 40) + 60}/100
-            </div>
-          </div>
-          
-          {/* Key Specs */}
-          <div className="flex items-center gap-4 text-xs text-gray-600 mb-3">
-            <span>{coin.year || "N/A"}</span>
-            <span>•</span>
-            <span>{coin.condition || "N/A"}</span>
-            <span>•</span>
-            <span>{premium.toFixed(1)}%</span>
-            {(coin.storage_country || coin.origin_country) && (
-              <>
-                <span>•</span>
-                <div className="flex items-center gap-1">
-                  <CountryFlag 
-                    country={coin.storage_country || coin.origin_country || ""} 
-                    size="md"
-                  />
-                </div>
-              </>
-            )}
-          </div>
-          
-          {/* Action Buttons */}
-          {coin.is_sold ? (
-            <div className="text-center py-2 text-gray-500 font-medium text-sm">
-              ACHETÉ
-            </div>
-          ) : (
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex-1 text-xs rounded-full border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white"
-                onClick={() => onAnalyze?.(coin.id)}
-              >
-                Analyser
-              </Button>
-              <Button 
-                size="sm" 
-                className="flex-1 bg-black hover:bg-black/90 rounded-full text-xs"
-                onClick={() => onBuy?.(coin.id)}
-              >
-                Acheter
-              </Button>
-            </div>
-          )}
+      </div>
+
+      {/* Price Information */}
+      <div className="text-center">
+        <div className="text-2xl font-bold text-black mb-1">{coin.price_eur}€</div>
+        <div className="text-sm text-green-600">
+          Objectif de prix : {coin.target_price || Math.round(coin.price_eur * 1.1)}€
         </div>
       </div>
+
+      {/* Separator Line */}
+      <hr className="border-gray-200 mb-4" />
+
+      {/* Detailed Specifications */}
+      <div className="flex flex-col gap-4 text-sm">
+        <div className="flex flex-row gap-2 justify-evenly">
+          <div className="space-y-1">
+            <div className="text-gray-600">Année</div>
+            <div className="font-bold text-black">{coin.year || "N/A"}</div>
+          </div>
+          <div className="space-y-1">
+            <div className="text-gray-600">Etat</div>
+            <div className="font-bold text-black">{coin.condition || "N/A"}</div>
+          </div>
+          <div className="space-y-1">
+            <div className="text-gray-600">Prime</div>
+            <div className="font-bold text-black">{premium.toFixed(2)}%</div>
+          </div>
+        </div>
+        <div className="flex flex-row gap-2 justify-evenly">
+          <div className="space-y-1">
+            <div className="text-gray-600">Livraison</div>
+            <div className="font-bold text-black">{coin.delivery ? "Oui" : "Non"}</div>
+          </div>
+          <div className="space-y-1">
+            <div className="text-gray-600">Stockage</div>
+            <div className="flex items-center gap-1">
+              <span className="font-bold text-black">{coin.storage_country || coin.origin_country || "N/A"}</span>
+              {(coin.storage_country || coin.origin_country) && (
+                <CountryFlag 
+                  country={coin.storage_country || coin.origin_country || ""} 
+                  size="sm"
+                />
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-row gap-2 justify-evenly">
+          <div className="space-y-1">
+          <div className="text-gray-600">LSP</div>
+          <div className="font-bold text-black">{coin.lsp ? "Oui" : "Non"}</div>
+          </div>
+          <div className="space-y-1 col-span-2">
+            <div className="text-gray-600">Fiscalité</div>
+            <div className="font-bold text-black">{coin.taxation || "Cours légaux"}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      {coin.is_sold ? (
+        <div className="text-center py-3 text-gray-500 font-medium">
+          ACHETÉ
+        </div>
+      ) : (
+        <div className="flex gap-3">
+          <Button 
+            variant="outline" 
+            className="flex-1 text-sm rounded-lg border-blue-600 text-blue-600 hover:bg-gold-500 hover:text-black hover:border-gold-500"
+            onClick={() => onAnalyze?.(coin.id)}
+          >
+                <Search className="w-3 h-3 mr-1" />
+
+            Analyser
+          </Button>
+          <Button 
+            className="flex-1 bg-black hover:bg-gold-500 hover:text-black text-white text-sm rounded-lg"
+            onClick={() => onBuy?.(coin.id)}
+          >
+                <ShoppingCart className="w-3 h-3 mr-1" />
+
+            Acheter
+          </Button>
+        </div>
+      )}
     </Card>
   )
 }

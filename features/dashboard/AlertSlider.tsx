@@ -24,38 +24,6 @@ interface AlertData {
 
 const alertData: AlertData[] = [
   {
-    id: 'opportunities',
-    icon: Lightbulb,
-    title: 'Nouvelles opportunités disponibles détectées par Meillor IA',
-    subtitle: 'Découvrez les meilleures pièces',
-    details: [
-      '22 pièces à haut potentiel de valorisation',
-      '3 pièces uniques',
-      '5 nouvelles acquisitions recommandées'
-    ],
-    bgColor: 'bg-amber-50',
-    borderColor: 'border-amber-200',
-    iconColor: 'text-amber-600',
-    textColor: 'text-amber-900',
-    detailColor: 'text-amber-800'
-  },
-  {
-    id: 'market-analysis',
-    icon: TrendingUp,
-    title: 'Analyse de marché par Meillor IA',
-    subtitle: 'Tendances actuelles du marché',
-    details: [
-      'Tendance mensuelle haussière',
-      'Volume 24h de 200M€',
-      'Croissance de 15% ce mois'
-    ],
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
-    iconColor: 'text-blue-600',
-    textColor: 'text-blue-900',
-    detailColor: 'text-blue-800'
-  },
-  {
     id: 'price-alerts',
     icon: AlertTriangle,
     title: 'Alertes de prix en temps réel',
@@ -116,7 +84,7 @@ const alertData: AlertData[] = [
     bgColor: 'bg-orange-50',
     borderColor: 'border-orange-200',
     iconColor: 'text-orange-600',
-    textColor: 'text-orange-900',
+    textColor: 'text-orange-600',
     detailColor: 'text-orange-800'
   }
 ]

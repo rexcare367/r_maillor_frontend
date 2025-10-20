@@ -33,8 +33,16 @@ export default function CoinListItem({ coin, onAnalyze, onBuy }: CoinListItemPro
   const premium = coin.premium || Math.random() * 5 + 1
 
   return (
-    <Card className="bg-white rounded-lg overflow-hidden">
+    <Card className="bg-white rounded-lg overflow-hidden hover:bg-gold-50 hover:border-gold-400">
       <div className="flex items-center gap-6 p-4">
+        {/* Ranking and Score */}
+        <div className="flex flex-col items-center gap-1 w-16 flex-shrink-0">
+          <span className="text-sm text-gray-600 font-medium">#{coin.ranking || 1}</span>
+          <div className="text-xl font-bold text-purple-600">
+            {coin.ai_score || Math.floor(Math.random() * 40) + 60}
+          </div>
+        </div>
+        
         {/* Coin Image - Medium */}
         <div className="w-20 h-20 flex-shrink-0">
           <img 
@@ -42,14 +50,6 @@ export default function CoinListItem({ coin, onAnalyze, onBuy }: CoinListItemPro
             alt={coin.name} 
             className="w-full h-full object-contain rounded-full" 
           />
-        </div>
-        
-        {/* Ranking and Score */}
-        <div className="flex flex-col items-center gap-1 w-16 flex-shrink-0">
-          <span className="text-sm text-gray-600 font-medium">#{coin.ranking || 1}</span>
-          <div className="text-lg font-bold text-purple-600">
-            {coin.ai_score || Math.floor(Math.random() * 40) + 60}
-          </div>
         </div>
         
         {/* Coin Info */}
@@ -77,7 +77,7 @@ export default function CoinListItem({ coin, onAnalyze, onBuy }: CoinListItemPro
           </div>
         </div>
         <div className="flex items-end gap-2 flex-col">
-        <Star className="w-5 h-5 text-yellow-400 stroke-yellow-400 fill-none flex-shrink-0 ml-2" />
+        <Star className="w-5 h-5 text-yellow-400 stroke-yellow-400 fill-none flex-shrink-0 ml-2 hover:text-gold-400 hover:fill-gold-200" />
         
         {/* Price Info */}
         <div className="flex flex-col items-end gap-1 w-24 ">
@@ -95,7 +95,7 @@ export default function CoinListItem({ coin, onAnalyze, onBuy }: CoinListItemPro
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="flex-1 text-xs rounded-full border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white"
+                className="flex-1 text-xs rounded-full border-purple-600 text-purple-600 hover:bg-gold-500 hover:text-black hover:border-gold-600"
                 onClick={() => onAnalyze?.(coin.id)}
               >
                 <Search className="w-3 h-3 mr-1" />
@@ -103,7 +103,7 @@ export default function CoinListItem({ coin, onAnalyze, onBuy }: CoinListItemPro
               </Button>
               <Button 
                 size="sm" 
-                className="flex-1 bg-black hover:bg-black/90 rounded-full text-xs"
+                className="flex-1 bg-black text-white hover:bg-gold-500 hover:text-black rounded-full text-xs"
                 onClick={() => onBuy?.(coin.id)}
               >
                 <ShoppingCart className="w-3 h-3 mr-1" />
