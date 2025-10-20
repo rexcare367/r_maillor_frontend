@@ -30,7 +30,6 @@ interface CoinListItemProps {
 }
 
 export default function CoinListItem({ coin, onAnalyze, onBuy }: CoinListItemProps) {
-  const targetPrice = coin.target_price || Math.floor(coin.price_eur * 1.1)
   const premium = coin.premium || Math.random() * 5 + 1
 
   return (
