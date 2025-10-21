@@ -1,7 +1,5 @@
 'use client'
 
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
 import { useCoins } from "@/hooks/useCoins"
 import AlertSlider from "@/features/dashboard/AlertSlider"
 import StatsSection from "@/features/dashboard/StatsSection"
@@ -14,12 +12,6 @@ export default function MeillorDashboard() {
     page: 1, 
     limit: 25,
   })
-
-  // Handler functions for coin actions
-  const handleAnalyze = (coinId: string) => {
-    console.log('Analyzing coin:', coinId)
-    // Add your analyze logic here
-  }
 
   const handleBuy = (coinId: string) => {
     console.log('Buying coin:', coinId)
@@ -67,7 +59,6 @@ export default function MeillorDashboard() {
                   ...coin,
                   ranking: index + 1
                 }}
-                onAnalyze={handleAnalyze}
                 onBuy={handleBuy}
               />
             ))}

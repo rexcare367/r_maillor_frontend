@@ -26,11 +26,10 @@ interface CoinListItemProps {
     origin_country?: string
     ranking?: number
   }
-  onAnalyze?: (coinId: string) => void
   onBuy?: (coinId: string) => void
 }
 
-export default function CoinListItem({ coin, onAnalyze, onBuy }: CoinListItemProps) {
+export default function CoinListItem({ coin, onBuy }: CoinListItemProps) {
   const premium = coin.premium || Math.random() * 5 + 1
 
   return (

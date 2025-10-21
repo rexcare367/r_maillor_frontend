@@ -23,18 +23,16 @@ interface CoinCardProps {
     origin_country?: string
     ranking?: number
   }
-  onAnalyze?: (coinId: string) => void
   onBuy?: (coinId: string) => void
 }
 
-export default function CoinCard({ coin, onAnalyze, onBuy }: CoinCardProps) {
+export default function CoinCard({ coin, onBuy }: CoinCardProps) {
   return (
     <>
       {/* Mobile Card View */}
       <div className="md:hidden">
         <CoinCardItem 
           coin={coin}
-          onAnalyze={onAnalyze}
           onBuy={onBuy}
         />
       </div>
@@ -43,7 +41,6 @@ export default function CoinCard({ coin, onAnalyze, onBuy }: CoinCardProps) {
       <div className="hidden md:block">
         <CoinListItem 
           coin={coin}
-          onAnalyze={onAnalyze}
           onBuy={onBuy}
         />
       </div>
