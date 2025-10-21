@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Star, Search, ShoppingCart } from "lucide-react"
 import { CountryFlag } from "./CountryFlag"
+import Link from "next/link"
 
 interface CoinListItemProps {
   coin: {
@@ -92,15 +93,16 @@ export default function CoinListItem({ coin, onAnalyze, onBuy }: CoinListItemPro
             </div>
           ) : (
             <>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex-1 text-xs rounded-full border-purple-600 text-purple-600 hover:bg-gold-500 hover:text-black hover:border-gold-600"
-                onClick={() => onAnalyze?.(coin.id)}
-              >
-                <Search className="w-3 h-3 mr-1" />
-                Analyser
-              </Button>
+              <Link href={`/coins/${coin.id}`}>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1 text-xs rounded-full border-purple-600 text-purple-600 hover:bg-gold-500 hover:text-black hover:border-gold-600"
+                >
+                  <Search className="w-3 h-3 mr-1" />
+                  Analyser
+                </Button>
+              </Link>
               <Button 
                 size="sm" 
                 className="flex-1 bg-black text-white hover:bg-gold-500 hover:text-black rounded-full text-xs"

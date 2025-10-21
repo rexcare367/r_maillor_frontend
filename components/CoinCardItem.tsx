@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Star, Search, ShoppingCart } from "lucide-react"
 import { CountryFlag } from "./CountryFlag"
+import Link from "next/link"
 
 interface CoinCardItemProps {
   coin: {
@@ -124,21 +125,20 @@ export default function CoinCardItem({ coin, onAnalyze, onBuy }: CoinCardItemPro
         </div>
       ) : (
         <div className="flex gap-3">
-          <Button 
-            variant="outline" 
-            className="flex-1 text-sm rounded-lg border-blue-600 text-blue-600 hover:bg-gold-500 hover:text-black hover:border-gold-500"
-            onClick={() => onAnalyze?.(coin.id)}
-          >
-                <Search className="w-3 h-3 mr-1" />
-
-            Analyser
-          </Button>
+          <Link href={`/coins/${coin.id}`} className="flex-1">
+            <Button 
+              variant="outline" 
+              className="w-full text-sm rounded-lg border-blue-600 text-blue-600 hover:bg-gold-500 hover:text-black hover:border-gold-500"
+            >
+              <Search className="w-3 h-3 mr-1" />
+              Analyser
+            </Button>
+          </Link>
           <Button 
             className="flex-1 bg-black hover:bg-gold-500 hover:text-black text-white text-sm rounded-lg"
             onClick={() => onBuy?.(coin.id)}
           >
-                <ShoppingCart className="w-3 h-3 mr-1" />
-
+            <ShoppingCart className="w-3 h-3 mr-1" />
             Acheter
           </Button>
         </div>

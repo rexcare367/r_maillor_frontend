@@ -27,75 +27,53 @@ export default function MeillorDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gold-200 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <h1 className="text-xl font-bold text-foreground">Meillor</h1>
-          <div className="flex items-center gap-3">
-            <Link href="/login">
-              <Button variant="outline" size="default" className="hover:bg-gold-50 hover:border-gold-500">
-                Se connecter
-              </Button>
-            </Link>
-            <Link href="/register">
-              <Button size="default" className="bg-black hover:bg-gold-500 hover:text-black">
-                Devenir Membre
-              </Button>
-            </Link>
+    <div>
+      {/* Stats Section */}
+      <StatsSection loading={loading} totalCoins={pagination?.total || 0} />
+
+      {/* Alert Slider */}
+      <AlertSlider />
+
+      {/* Top Or Section */}
+      <div className="mt-10">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold text-foreground">Top Or</h2>
+          <div className="text-sm text-muted-foreground">
+            {loading ? "Chargement..." : `Mise à jour il y a ${Math.floor(Math.random() * 24)} heures`}
           </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        {/* Stats Section */}
-        <StatsSection loading={loading} totalCoins={pagination?.total || 0} />
-
-        {/* Alert Slider */}
-        <AlertSlider />
-
-        {/* Top Or Section */}
-        <div className="mt-10">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-foreground">Top Or</h2>
-            <div className="text-sm text-muted-foreground">
-              {loading ? "Chargement..." : `Mise à jour il y a ${Math.floor(Math.random() * 24)} heures`}
-            </div>
-          </div>
-
-          {error && (
-            <div className="mb-4">
-              <Error 
-                message={error}
-                title="Erreur de chargement"
-                onRetry={() => window.location.reload()}
-              />
-            </div>
-          )}
-
-          {loading ? (
-            <Loading 
-              message="Chargement des pièces..."
-              size="md"
+        {error && (
+          <div className="mb-4">
+            <Error 
+              message={error}
+              title="Erreur de chargement"
+              onRetry={() => window.location.reload()}
             />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-4 md:gap-2">
-              {coins.map((coin, index) => (
-                <CoinCard 
-                  key={coin.id} 
-                  coin={{
-                    ...coin,
-                    ranking: index + 1
-                  }}
-                  onAnalyze={handleAnalyze}
-                  onBuy={handleBuy}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </main>
+          </div>
+        )}
+
+        {loading ? (
+          <Loading 
+            message="Chargement des pièces..."
+            size="md"
+          />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4 md:gap-2">
+            {coins.map((coin, index) => (
+              <CoinCard 
+                key={coin.id} 
+                coin={{
+                  ...coin,
+                  ranking: index + 1
+                }}
+                onAnalyze={handleAnalyze}
+                onBuy={handleBuy}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
