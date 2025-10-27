@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { singUpWithEmailAndPassword } from '../auth/actions';
 import { useRouter } from 'next/navigation';
+import { getSupabaseFrontendClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 
 export default function RegisterPage() {
@@ -13,28 +15,38 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setIsLoading(true);
+    setError(null);
     
     if (password !== confirmPassword) {
       setError('Passwords do not match');
+      setIsLoading(false);
       return;
     }
     
-    setIsLoading(true);
-    
     try {
-      const { data, error } = await singUpWithEmailAndPassword({ email, password });
+      const supabase = getSupabaseFrontendClient();
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
 
       if (error) {
         console.error('Error signing up:', error);
         setError(error.message || 'An error occurred during registration');
       } else {
         console.log('Signed up successfully:', data);
+        toast({
+          title: 'Account created successfully!',
+          description: 'Please check your email to confirm your account.',
+          variant: 'default',
+        });
         router.push('/login');
       }
     } catch (error) {
@@ -65,13 +77,12 @@ export default function RegisterPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
             <form onSubmit={handleSubmit} className="space-y-6">
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
-                  {error}
-                </div>
-              )}
-              
               <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium text-gray-700">
                   Email address
@@ -119,7 +130,7 @@ export default function RegisterPage() {
               
               <Button 
                 type="submit" 
-                className="w-full bg-black hover:bg-black/90" 
+                className="w-full" 
                 disabled={isLoading}
               >
                 {isLoading ? 'Creating account...' : 'Get Started'}
@@ -127,7 +138,7 @@ export default function RegisterPage() {
               
               <div className="text-center text-sm text-gray-600">
                 Already have an account?{' '}
-                <Link href="/login" className="font-medium text-black hover:underline">
+                <Link href="/login" className="font-medium text-foreground hover:underline">
                   Sign in
                 </Link>
               </div>

@@ -1,45 +1,61 @@
-"use client"
+'use client'
 
-import useAxiosAuth from "@/lib/hooks/useAxiosAuth";
-import { getSupabaseFrontendClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
-import { useEffect, useState, useCallback } from "react"
-import type { User } from "@supabase/supabase-js";
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import AlertSlider from '@/features/dashboard/AlertSlider';
+import StatsSection from '@/features/dashboard/StatsSection';
+import CoinListing from '@/components/CoinListing';
+import { useCoins } from '@/hooks/useCoins';
 
 export default function DashboardPage() {
-    const router = useRouter();
-    const [user, setUser] = useState<User | null>(null);
-    const supabase = getSupabaseFrontendClient();
-    const axiosAuth = useAxiosAuth();
+  const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+  const { loading, pagination } = useCoins({ page: 1, limit: 25 });
 
-    const getProtectedData = useCallback(async () => {
-        const response = await axiosAuth.get('/protected');
-        console.log('Protected data:', response.data);
-    }, [axiosAuth]);
-
-    useEffect(() => {
-        const checkSession = async () => {
-            const { data } = await supabase.auth.getSession();
-            console.log('Session:', data);
-
-            if (!data.session) {
-                router.push('/login');
-            } else {
-                setUser(data.session.user);
-                getProtectedData();
-            }
-        }
-        checkSession();
-    }, [getProtectedData, router, supabase.auth]);
-
-    const logout = async () => {
-        await supabase.auth.signOut();
-        router.push('/login');
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login');
     }
-    return <div>
+  }, [user, authLoading, router]);
 
-        <h1>Dashboard</h1>  
-        <p>Welcome to the dashboard {user?.email}</p>
-        <button onClick={logout}>Logout</button>
+  const handleBuy = (coinId: string) => {
+    console.log('Buying coin:', coinId);
+    // Add your buy logic here
+  };
+
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  return (
+    <div>
+      {/* Welcome Section */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-foreground">
+          Welcome back, {user.email?.split('@')[0]}!
+        </h1>
+        <p className="text-muted-foreground mt-2">
+          Discover and collect rare coins with Meillor
+        </p>
+      </div>
+
+      {/* Stats Section */}
+      <StatsSection loading={loading} totalCoins={pagination?.total || 0} />
+
+      {/* Alert Slider */}
+      <AlertSlider />
+
+      {/* Coin Listing */}
+      <CoinListing onBuy={handleBuy} />
     </div>
+  );
 }

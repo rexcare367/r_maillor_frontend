@@ -1,41 +1,53 @@
 'use client';
 
 import { useState } from 'react';
-import { singInWithEmailAndPassword } from '../auth/actions';
 import { useRouter } from 'next/navigation';
+import { getSupabaseFrontendClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
     
     try {
-      const { data, error } = await singInWithEmailAndPassword({ email, password });
+      const supabase = getSupabaseFrontendClient();
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
       if (error) {
         console.error('Error logging in:', error);
+        setError(error.message || 'Invalid email or password. Please try again.');
       } else {
         console.log('Logged in successfully:', data);
+        // Wait a bit for the session to be set
+        await new Promise(resolve => setTimeout(resolve, 200));
         router.push('/dashboard');
+        router.refresh();
       }
     } catch (error) {
       console.error('Login error:', error);
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen h-fit flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 w-fu">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
@@ -49,11 +61,13 @@ export default function LoginPage() {
         <Card>
           <CardHeader>
             <CardTitle>Login</CardTitle>
-            <CardDescription>
-              Enter your email and password to access your account.
-            </CardDescription>
           </CardHeader>
           <CardContent>
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium text-gray-700">
