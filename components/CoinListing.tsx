@@ -18,7 +18,7 @@ export default function CoinListing({
   showHeader = true,
   onBuy 
 }: CoinListingProps) {
-  const { coins, loading, error, pagination } = useCoins({ page, limit });
+  const { coins, loading, error } = useCoins({ page, limit });
 
   const handleBuy = (coinId: string) => {
     console.log('Buying coin:', coinId);
