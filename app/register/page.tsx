@@ -32,9 +32,17 @@ export default function RegisterPage() {
     
     try {
       const supabase = getSupabaseFrontendClient();
+      
+      // Get the current origin to build the redirect URL
+      // Change this to your desired redirect page after email confirmation
+      const redirectUrl = `${window.location.origin}/login`;
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: redirectUrl,
+        },
       });
 
       if (error) {
