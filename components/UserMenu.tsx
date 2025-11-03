@@ -28,7 +28,6 @@ export default function UserMenu() {
 
   const handleSignOut = async () => {
     await signOut();
-    router.push('/login');
   };
 
   const userInitial = user?.email?.charAt(0).toUpperCase() || 'U';

@@ -14,7 +14,7 @@ export default function MeillorDashboard() {
   }
 
   return (
-    <div>
+    <div >
       {/* Stats Section */}
       <StatsSection loading={loading} totalCoins={pagination?.total || 0} />
 

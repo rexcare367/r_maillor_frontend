@@ -25,12 +25,18 @@ interface CoinListItemProps {
     is_sold?: boolean
     origin_country?: string
     ranking?: number
+    is_favorite?: boolean
   }
   onBuy?: (coinId: string) => void
+  onToggleFavorite?: (coinId: string, isFavorite: boolean) => void
 }
 
-export default function CoinListItem({ coin, onBuy }: CoinListItemProps) {
+export default function CoinListItem({ coin, onBuy, onToggleFavorite }: CoinListItemProps) {
   const premium = coin.premium || Math.random() * 5 + 1
+
+  const handleToggleFavorite = () => {
+    onToggleFavorite?.(coin.id, !coin.is_favorite)
+  }
 
   return (
     <Card className="bg-white rounded-lg overflow-hidden hover:bg-gold-50 hover:border-gold-400">
@@ -77,7 +83,19 @@ export default function CoinListItem({ coin, onBuy }: CoinListItemProps) {
           </div>
         </div>
         <div className="flex items-end gap-2 flex-col">
-        <Star className="w-5 h-5 text-yellow-400 stroke-yellow-400 fill-none flex-shrink-0 ml-2 hover:text-gold-400 hover:fill-gold-200" />
+        <button 
+          onClick={handleToggleFavorite}
+          className="transition-colors"
+          aria-label={coin.is_favorite ? "Remove from favorites" : "Add to favorites"}
+        >
+          <Star 
+            className={`w-5 h-5 cursor-pointer transition-colors flex-shrink-0 ml-2 ${
+              coin.is_favorite 
+                ? 'text-yellow-400 stroke-yellow-400 fill-yellow-400 hover:text-yellow-500 hover:fill-yellow-500' 
+                : 'text-gray-400 stroke-gray-400 fill-none hover:text-yellow-400 hover:fill-yellow-200'
+            }`} 
+          />
+        </button>
         
         {/* Price Info */}
         <div className="flex flex-col items-end gap-1 w-24 ">

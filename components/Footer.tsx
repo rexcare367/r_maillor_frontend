@@ -43,12 +43,12 @@ export default function Footer() {
             <h4 className="text-sm font-semibold">Account</h4>
             <ul className="space-y-1 text-sm">
               <li>
-                <Link href="/login" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/auth/login" className="text-muted-foreground hover:text-foreground transition-colors">
                   Login
                 </Link>
               </li>
               <li>
-                <Link href="/register" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/auth/register" className="text-muted-foreground hover:text-foreground transition-colors">
                   Register
                 </Link>
               </li>

@@ -20,7 +20,7 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gold-200 px-6 py-4">
+    <header className="bg-white border-b border-gold-200 px-6 py-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <h1 
           className="text-xl font-bold text-foreground cursor-pointer hover:text-gold-600 transition-colors"
@@ -35,12 +35,12 @@ export default function Header() {
             <UserMenu />
           ) : (
             <>
-              <Link href="/login">
+              <Link href="/auth/login">
                 <Button variant="outline" size="default" className="hover:bg-gold-50 hover:border-gold-500">
                   Se connecter
                 </Button>
               </Link>
-              <Link href="/register">
+              <Link href="/auth/register">
                 <Button size="default" className="bg-gold-500 hover:bg-gold-600 hover:text-black">
                   <UserIcon className="w-4 h-4 mr-2" />
                   Devenir Membre

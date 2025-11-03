@@ -1,9 +1,12 @@
 'use client';
 
+import { useState, useEffect } from "react";
 import { useCoins } from "@/hooks/useCoins";
 import Loading from "@/components/Loading";
 import Error from "@/components/Error";
 import CoinCard from "@/components/CoinCard";
+import { favoritesApi } from "@/lib/api/favorites";
+import { toast } from "@/hooks/use-toast";
 
 interface CoinListingProps {
   page?: number;
@@ -18,11 +21,57 @@ export default function CoinListing({
   showHeader = true,
   onBuy 
 }: CoinListingProps) {
-  const { coins, loading, error } = useCoins({ page, limit });
+  const { coins: apiCoins, loading, error, refetch } = useCoins({ page, limit });
+  const [localCoins, setLocalCoins] = useState(apiCoins);
+  const [favoriteLoading, setFavoriteLoading] = useState<string | null>(null);
+
+  // Update local coins when API coins change
+  useEffect(() => {
+    setLocalCoins(apiCoins);
+  }, [apiCoins]);
 
   const handleBuy = (coinId: string) => {
     console.log('Buying coin:', coinId);
     onBuy?.(coinId);
+  };
+
+  const handleToggleFavorite = async (coinId: string, isFavorite: boolean) => {
+    // Optimistically update the UI
+    setLocalCoins(prevCoins => 
+      prevCoins.map(coin => 
+        coin.id === coinId ? { ...coin, is_favorite: isFavorite } : coin
+      )
+    );
+
+    setFavoriteLoading(coinId);
+    try {
+      if (isFavorite) {
+        await favoritesApi.addFavorite(coinId);
+        toast({
+          title: "Ajouté aux favoris",
+          description: "La pièce a été ajoutée à vos favoris",
+        });
+      } else {
+        await favoritesApi.removeFavorite(coinId);
+        toast({
+          title: "Retiré des favoris",
+          description: "La pièce a été retirée de vos favoris",
+        });
+      }
+      // Refetch coins to get updated favorite status from server
+      await refetch();
+    } catch (err) {
+      console.error('Error toggling favorite:', err);
+      // Revert optimistic update on error
+      setLocalCoins(apiCoins);
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier les favoris",
+        variant: "destructive",
+      });
+    } finally {
+      setFavoriteLoading(null);
+    }
   };
 
   return (
@@ -53,7 +102,7 @@ export default function CoinListing({
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-1 gap-4 md:gap-2">
-          {coins.map((coin, index) => (
+          {localCoins.map((coin, index) => (
             <CoinCard 
               key={coin.id} 
               coin={{
@@ -61,6 +110,7 @@ export default function CoinListing({
                 ranking: index + 1
               }}
               onBuy={handleBuy}
+              onToggleFavorite={handleToggleFavorite}
             />
           ))}
         </div>

@@ -22,11 +22,13 @@ interface CoinCardProps {
     is_sold?: boolean
     origin_country?: string
     ranking?: number
+    is_favorite?: boolean
   }
   onBuy?: (coinId: string) => void
+  onToggleFavorite?: (coinId: string, isFavorite: boolean) => void
 }
 
-export default function CoinCard({ coin, onBuy }: CoinCardProps) {
+export default function CoinCard({ coin, onBuy, onToggleFavorite }: CoinCardProps) {
   return (
     <>
       {/* Mobile Card View */}
@@ -34,6 +36,7 @@ export default function CoinCard({ coin, onBuy }: CoinCardProps) {
         <CoinCardItem 
           coin={coin}
           onBuy={onBuy}
+          onToggleFavorite={onToggleFavorite}
         />
       </div>
 
@@ -42,6 +45,7 @@ export default function CoinCard({ coin, onBuy }: CoinCardProps) {
         <CoinListItem 
           coin={coin}
           onBuy={onBuy}
+          onToggleFavorite={onToggleFavorite}
         />
       </div>
     </>

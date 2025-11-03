@@ -25,12 +25,18 @@ interface CoinCardItemProps {
     is_sold?: boolean
     origin_country?: string
     ranking?: number
+    is_favorite?: boolean
   }
   onBuy?: (coinId: string) => void
+  onToggleFavorite?: (coinId: string, isFavorite: boolean) => void
 }
 
-export default function CoinCardItem({ coin, onBuy }: CoinCardItemProps) {
+export default function CoinCardItem({ coin, onBuy, onToggleFavorite }: CoinCardItemProps) {
   const premium = coin.premium || Math.random() * 5 + 1
+
+  const handleToggleFavorite = () => {
+    onToggleFavorite?.(coin.id, !coin.is_favorite)
+  }
 
   return (
     <Card className="bg-white rounded-lg overflow-hidden p-6 max-w-sm">
@@ -40,7 +46,19 @@ export default function CoinCardItem({ coin, onBuy }: CoinCardItemProps) {
         <div className="text-xl font-bold text-blue-600">
           {coin.ai_score || Math.floor(Math.random() * 40) + 60}/100
         </div>
-        <Star className="w-5 h-5 text-gray-400 stroke-gray-400 fill-none hover:text-gold-400 hover:fill-gold-200" />
+        <button 
+          onClick={handleToggleFavorite}
+          className="transition-colors"
+          aria-label={coin.is_favorite ? "Remove from favorites" : "Add to favorites"}
+        >
+          <Star 
+            className={`w-5 h-5 cursor-pointer transition-colors ${
+              coin.is_favorite 
+                ? 'text-yellow-400 stroke-yellow-400 fill-yellow-400 hover:text-yellow-500 hover:fill-yellow-500' 
+                : 'text-gray-400 stroke-gray-400 fill-none hover:text-yellow-400 hover:fill-yellow-200'
+            }`} 
+          />
+        </button>
       </div>
 
       {/* Coin Title and Subtitle */}

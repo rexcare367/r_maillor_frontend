@@ -1,4 +1,4 @@
-import axiosInstance from '../axios'
+import { axiosAuth } from '../axios'
 
 export interface Coin {
   id: string
@@ -28,6 +28,7 @@ export interface Coin {
   scraped_at: string
   created_at: string
   updated_at: string | null
+  is_favorite?: boolean
 }
 
 export interface CoinsResponse {
@@ -57,12 +58,26 @@ export interface CoinsParams {
 
 export const coinsApi = {
   async getCoins(params: CoinsParams = {}): Promise<CoinsResponse> {
-    const response = await axiosInstance.get('/coins', { params })
-    return response.data
+    console.log('🪙 Fetching coins with params:', params);
+    try {
+      const response = await axiosAuth.get('/coins', { params });
+      console.log('✅ Coins fetched successfully:', response.data.pagination);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error fetching coins:', error);
+      throw error;
+    }
   },
 
   async getCoinById(id: string): Promise<Coin> {
-    const response = await axiosInstance.get(`/coins/${id}`)
-    return response.data
+    console.log('🪙 Fetching coin by ID:', id);
+    try {
+      const response = await axiosAuth.get(`/coins/${id}`);
+      console.log('✅ Coin fetched successfully:', response.data.name);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error fetching coin:', error);
+      throw error;
+    }
   }
 }
