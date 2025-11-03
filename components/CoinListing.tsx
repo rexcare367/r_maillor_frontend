@@ -23,7 +23,7 @@ export default function CoinListing({
 }: CoinListingProps) {
   const { coins: apiCoins, loading, error, refetch } = useCoins({ page, limit });
   const [localCoins, setLocalCoins] = useState(apiCoins);
-  const [favoriteLoading, setFavoriteLoading] = useState<string | null>(null);
+  const [favoriteLoading, setFavoriteLoading] = useState<boolean>(false);
 
   // Update local coins when API coins change
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function CoinListing({
       )
     );
 
-    setFavoriteLoading(coinId);
+    setFavoriteLoading(!!coinId);
     try {
       if (isFavorite) {
         await favoritesApi.addFavorite(coinId);
@@ -70,7 +70,7 @@ export default function CoinListing({
         variant: "destructive",
       });
     } finally {
-      setFavoriteLoading(null);
+      setFavoriteLoading(false);
     }
   };
 
@@ -95,7 +95,7 @@ export default function CoinListing({
         </div>
       )}
 
-      {loading ? (
+      {loading || favoriteLoading ? (
         <Loading 
           message="Chargement des pièces..."
           size="md"
