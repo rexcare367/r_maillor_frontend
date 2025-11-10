@@ -101,11 +101,12 @@ export default function UserMenu() {
           <div className="px-6 pb-3 flex gap-3">
             <button
               className="flex-1 py-2.5 px-4 bg-gray-100 rounded-md text-gray-700 text-sm font-medium hover:bg-gray-200 transition-all duration-200 flex items-center justify-center"
+              onClick={() => router.push('/profile')}
             >
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              Settings
+              Manage
             </button>
             <button
               onClick={handleSignOut}

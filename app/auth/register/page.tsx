@@ -10,6 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import Loading from '@/components/Loading';
 import Link from 'next/link';
 import { Eye, EyeOff, Lock, Mail, AlertCircle, UserPlus } from 'lucide-react';
+import { axiosAuth } from '@/lib/axios';
+import type { AxiosError } from 'axios';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -42,13 +44,39 @@ export default function RegisterPage() {
     }
     
     try {
-      const { error } = await signUp(email, password);
+      const { error, user } = await signUp(email, password);
 
       if (error) {
         console.error('Error signing up:', error);
         setError(error.message || 'An error occurred during registration');
       } else {
         console.log('Signed up successfully');
+
+        if (user?.id) {
+          try {
+            await axiosAuth.post('/billing/customers', {
+              user_id: user.id,
+              email,
+              name: generateNameFromEmail(email),
+              metadata: { signup_source: 'web_register_page' },
+            });
+          } catch (apiError) {
+            const axiosError = apiError as AxiosError<{ message?: string }>;
+            const apiMessage =
+              axiosError.response?.data?.message ||
+              axiosError.message ||
+              'Unable to create Stripe customer';
+            console.error('Stripe customer creation failed:', apiError);
+            toast({
+              title: 'Account created, but something went wrong',
+              description: apiMessage,
+              variant: 'destructive',
+            });
+          }
+        } else {
+          console.warn('No user returned from sign up; skipping Stripe customer creation.');
+        }
+
         toast({
           title: 'Account created successfully!',
           description: 'Please check your email to confirm your account.',
@@ -248,5 +276,14 @@ export default function RegisterPage() {
       </div>
     </>
   );
+}
+
+function generateNameFromEmail(email: string) {
+  const localPart = email.split('@')[0] || 'user';
+  return localPart
+    .split(/[\.\_\-]+/)
+    .filter(Boolean)
+    .map((chunk) => chunk.charAt(0).toUpperCase() + chunk.slice(1))
+    .join(' ') || email;
 }
 
