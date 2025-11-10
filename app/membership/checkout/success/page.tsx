@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { CheckCircle2 } from 'lucide-react';
 
 import { ProtectedRoute } from '@/components/ProtectedRoute';
@@ -8,6 +10,16 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 
 export default function MembershipCheckoutSuccessPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      router.push('/profile');
+    }, 5000);
+
+    return () => clearTimeout(timeout);
+  }, [router]);
+
   return (
     <ProtectedRoute>
       <div className="flex min-h-[60vh] items-center justify-center">
@@ -22,6 +34,9 @@ export default function MembershipCheckoutSuccessPage() {
             <p>Your membership is being activated. You will receive a confirmation email shortly.</p>
             <p className="text-xs uppercase tracking-wider text-muted-foreground/80">
               Thank you for supporting our collector community.
+            </p>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground/80">
+              Redirecting to your profile in 5 seconds.
             </p>
           </CardContent>
           <CardFooter className="flex flex-col gap-3 sm:flex-row sm:justify-center">

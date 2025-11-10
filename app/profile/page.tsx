@@ -11,9 +11,26 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { CreditCard, Loader2, RefreshCw, User2, Wallet } from 'lucide-react';
+import {
+  BadgeCheck,
+  CalendarDays,
+  Clock3,
+  ExternalLink,
+  Hash,
+  Loader2,
+  Mail,
+  RefreshCw,
+  User2,
+  XCircle,
+} from 'lucide-react';
+import { axiosAuth } from '@/lib/axios';
 
 type Primitive = string | number | boolean | null | undefined;
+
+interface CancelSubscriptionPayload {
+  reason?: string;
+  stripe_invoice_url?: string;
+}
 
 interface ProfilePayload {
   user: {
@@ -52,53 +69,6 @@ function formatDate(value?: Primitive) {
   return date.toLocaleString();
 }
 
-function renderKeyValue(data?: Record<string, Primitive | Record<string, Primitive>>) {
-  if (!data || Object.keys(data).length === 0) {
-    return <p className="text-sm text-muted-foreground">No data available.</p>;
-  }
-
-  return (
-    <dl className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      {Object.entries(data).map(([key, rawValue]) => {
-        const label = key
-          .replace(/_/g, ' ')
-          .replace(/\b\w/g, (letter) => letter.toUpperCase());
-
-        let displayValue: string;
-        if (rawValue === null || rawValue === undefined) {
-          displayValue = '—';
-        } else if (typeof rawValue === 'boolean') {
-          displayValue = rawValue ? 'Yes' : 'No';
-        } else if (typeof rawValue === 'object') {
-          displayValue = JSON.stringify(rawValue, null, 2);
-        } else if (key.toLowerCase().includes('date') || key.toLowerCase().includes('period')) {
-          displayValue = formatDate(rawValue);
-        } else {
-          displayValue = String(rawValue);
-        }
-
-        return (
-          <div
-            key={key}
-            className="rounded-lg border border-border/60 bg-background px-4 py-3 shadow-sm transition hover:border-border"
-          >
-            <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</dt>
-            <dd className="mt-1 text-sm text-foreground">
-              {typeof rawValue === 'object' && rawValue !== null ? (
-                <pre className="whitespace-pre-wrap break-words text-xs text-muted-foreground">
-                  {displayValue}
-                </pre>
-              ) : (
-                displayValue
-              )}
-            </dd>
-          </div>
-        );
-      })}
-    </dl>
-  );
-}
-
 export default function ProfilePage() {
   const { profile, refreshProfile } = useAuth();
   const { toast } = useToast();
@@ -106,6 +76,7 @@ export default function ProfilePage() {
   const [profileData, setProfileData] = useState<ProfilePayload | null>(profile as ProfilePayload | null);
   const [isLoading, setIsLoading] = useState(!profile);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -167,9 +138,32 @@ export default function ProfilePage() {
     return (subscriptions?.active ?? null) as Record<string, Primitive | Record<string, Primitive>> | null;
   }, [subscriptions]);
 
-  const subscriptionList = useMemo(() => {
-    return (subscriptions?.all ?? []) as Array<Record<string, Primitive | Record<string, Primitive>>>;
-  }, [subscriptions]);
+const activeSubscriptionId = useMemo(() => {
+    if (!activeSubscription) return null;
+    const candidates = [
+      activeSubscription['id'],
+      activeSubscription['subscription_id'],
+      activeSubscription['stripe_subscription_id'],
+      activeSubscription['stripe_id'],
+      activeSubscription['subscriptionId'],
+    ];
+
+    const idCandidate = candidates.find((candidate) => {
+      if (typeof candidate === 'number') return true;
+      if (typeof candidate === 'string') return candidate.trim().length > 0;
+      return false;
+    });
+
+    if (typeof idCandidate === 'number') {
+      return String(idCandidate);
+    }
+
+    if (typeof idCandidate === 'string') {
+      return idCandidate.trim();
+    }
+
+    return null;
+  }, [activeSubscription]);
 
   const subscriptionStatus = useMemo(() => {
     const statusValue = activeSubscription?.['status'] as Primitive;
@@ -199,38 +193,98 @@ export default function ProfilePage() {
     return plan ?? 'No plan';
   }, [activeSubscription]);
 
-  const subscriptionRenewal = useMemo(() => {
+  const subscriptionStartDate = useMemo(() => {
     if (!activeSubscription) return null;
     const candidates = [
-      activeSubscription['current_period_end'],
-      activeSubscription['current_period_end_at'],
-      activeSubscription['renewal_date'],
+      activeSubscription['current_period_start'],
+      activeSubscription['start_date'],
+      activeSubscription['started_at'],
+      activeSubscription['created'],
     ];
     const value = candidates.find((candidate) => typeof candidate === 'string') as string | undefined;
     return value ?? null;
   }, [activeSubscription]);
 
-  const customerSummary = useMemo(() => {
-    if (!stripeCustomer) return null;
-    const { metadata, ...rest } = stripeCustomer;
-    console.log(metadata);
-    return rest as Record<string, Primitive | Record<string, Primitive>>;
-  }, [stripeCustomer]);
+  const subscriptionInvoiceUrl = useMemo(() => {
+    if (!activeSubscription) return null;
+    const directUrlCandidates = [
+      activeSubscription['latest_invoice_url'],
+      activeSubscription['invoice_url'],
+      activeSubscription['hosted_invoice_url'],
+      activeSubscription['stripe_invoice_url'],
+    ];
+    const directUrl = directUrlCandidates.find(
+      (candidate) => typeof candidate === 'string' && candidate.trim().length > 0,
+    ) as string | undefined;
+    if (directUrl) return directUrl;
 
-  const primaryInfo = useMemo(() => {
-    if (!userInfo) return null;
-    const emailVerified =
+    const latestInvoice = activeSubscription['latest_invoice'];
+    if (latestInvoice && typeof latestInvoice === 'object') {
+      const invoiceRecord = latestInvoice as Record<string, Primitive>;
+      const nestedCandidates = [
+        invoiceRecord['hosted_invoice_url'],
+        invoiceRecord['invoice_pdf'],
+        invoiceRecord['url'],
+      ];
+      const nestedUrl = nestedCandidates.find(
+        (candidate) => typeof candidate === 'string' && candidate.trim().length > 0,
+      ) as string | undefined;
+      if (nestedUrl) return nestedUrl;
+    }
+
+    return null;
+  }, [activeSubscription]);
+
+  const handleCancelSubscription = useCallback(async () => {
+    if (!activeSubscription) return;
+    if (!activeSubscriptionId) {
+      setError('Unable to identify your subscription. Please contact support.');
+      return;
+    }
+    setIsCancelling(true);
+    setError(null);
+    try {
+      const payload: CancelSubscriptionPayload = {};
+      if (subscriptionInvoiceUrl) {
+        payload.stripe_invoice_url = subscriptionInvoiceUrl;
+      }
+
+      await axiosAuth.post(`/subscriptions/${encodeURIComponent(activeSubscriptionId)}/cancel`, payload);
+      const updatedProfile = await refreshProfile();
+      setProfileData(updatedProfile as ProfilePayload | null);
+      toast({
+        title: 'Subscription canceled',
+        description: 'Your membership will remain active until the current period ends.',
+      });
+    } catch (err) {
+      console.error('Unable to cancel subscription:', err);
+      setError('Unable to cancel your subscription right now. Please try again shortly.');
+      toast({
+        variant: 'destructive',
+        title: 'Cancellation failed',
+        description: 'Please try again in a moment or contact support.',
+      });
+    } finally {
+      setIsCancelling(false);
+    }
+  }, [activeSubscription, activeSubscriptionId, refreshProfile, subscriptionInvoiceUrl, toast]);
+
+  const emailVerified = useMemo(() => {
+    if (!userInfo) return false;
+    const metadataValue =
       (userInfo.user_metadata?.email_verified as Primitive) ??
       (userInfo.user_metadata?.email_confirmed as Primitive) ??
-      (userInfo.email_verified as Primitive) ??
-      false;
-
-    return {
-      email: userInfo.email ?? '—',
-      email_verified: typeof emailVerified === 'boolean' ? emailVerified : emailVerified ?? false,
-      created_at: userInfo.created_at ?? null,
-      last_sign_in_at: userInfo.last_sign_in_at ?? null,
-    } as Record<string, Primitive>;
+      (userInfo.email_verified as Primitive);
+    if (typeof metadataValue === 'boolean') return metadataValue;
+    if (typeof metadataValue === 'string') {
+      const normalized = metadataValue.trim().toLowerCase();
+      if (normalized === 'true') return true;
+      if (normalized === 'false') return false;
+    }
+    if (typeof metadataValue === 'number') {
+      return metadataValue === 1;
+    }
+    return Boolean(metadataValue);
   }, [userInfo]);
 
   const displayName = useMemo(() => {
@@ -240,6 +294,12 @@ export default function ProfilePage() {
   }, [stripeCustomer, userInfo]);
 
   const emailValue = userInfo?.email ?? stripeCustomer?.email ?? 'No email on file';
+  const primaryName = stripeCustomer?.name ?? displayName;
+  const createdAtDisplay = formatDate(userInfo?.created_at);
+  const lastSignInDisplay = formatDate(userInfo?.last_sign_in_at);
+  const stripeCustomerId = stripeCustomer?.stripe_customer_id ?? stripeCustomer?.id ?? '—';
+  const relatedUserId = stripeCustomer?.user_id ?? userInfo?.id ?? '—';
+  const emailStatusLabel = emailVerified ? 'Verified' : 'Not Verified';
 
   const initials = useMemo(() => {
     const [first = '', second = ''] = displayName.split(' ');
@@ -277,10 +337,6 @@ export default function ProfilePage() {
               </div>
             </div>
             <div className="flex flex-col items-start gap-3 md:items-end">
-              <Badge variant="outline" className="gap-2 text-xs uppercase tracking-widest">
-                <User2 className="h-4 w-4" />
-                Profile ID: {userInfo?.id ?? 'N/A'}
-              </Badge>
               <Button variant="outline" onClick={handleRefresh} disabled={isRefreshing}>
                 {isRefreshing ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -289,63 +345,13 @@ export default function ProfilePage() {
                 )}
                 Refresh
               </Button>
+              <Badge variant="outline" className="gap-2 text-xs">
+                <User2 className="h-4 w-4" />
+                Profile ID: {userInfo?.id ?? 'N/A'}
+              </Badge>
             </div>
           </CardContent>
         </Card>
-
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card className="border border-border/60 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-md">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-sm font-medium uppercase tracking-widest text-slate-200">
-                <Wallet className="h-4 w-4" />
-                Subscription
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xl font-semibold capitalize">{subscriptionPlanName}</p>
-              <p className="mt-2 text-sm text-slate-300">
-                Status: <span className="capitalize">{subscriptionStatus}</span>
-              </p>
-              <p className="mt-1 text-xs text-slate-400">
-                Next renewal: {formatDate(subscriptionRenewal)}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border border-border/60 shadow-md">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-sm font-medium uppercase tracking-widest">
-                <CreditCard className="h-4 w-4 text-primary" />
-                Stripe Customer
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xl font-semibold">
-                {stripeCustomer?.stripe_customer_id ?? stripeCustomer?.id ?? 'Not created'}
-              </p>
-              <p className="mt-2 text-sm text-muted-foreground">Email: {stripeCustomer?.email ?? '—'}</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Name: {stripeCustomer?.name ?? displayName}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border border-border/60 shadow-md">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-sm font-medium uppercase tracking-widest">
-                <User2 className="h-4 w-4 text-primary" />
-                Account Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xl font-semibold capitalize">{displayName}</p>
-              <p className="mt-2 text-sm text-muted-foreground">Email: {emailValue}</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Subscriptions on file: {subscriptionList.length}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
 
         {error && (
           <Alert variant="destructive">
@@ -361,7 +367,80 @@ export default function ProfilePage() {
               <CardHeader>
                 <CardTitle>Primary Information</CardTitle>
               </CardHeader>
-              <CardContent>{renderKeyValue(primaryInfo ?? undefined)}</CardContent>
+              <CardContent className="p-6">
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-5">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Email</p>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+                          <Mail className="h-4 w-4 text-primary" />
+                          {emailValue}
+                        </span>
+                        <Badge
+                          variant={emailVerified ? 'default' : 'outline'}
+                          className="flex items-center gap-1 text-xs font-medium"
+                        >
+                          {emailVerified ? (
+                            <BadgeCheck className="h-3.5 w-3.5" />
+                          ) : (
+                            <XCircle className="h-3.5 w-3.5" />
+                          )}
+                          {emailStatusLabel}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Name</p>
+                      <div className="mt-2 flex items-center gap-2 text-sm font-medium text-foreground">
+                        <User2 className="h-4 w-4 text-primary" />
+                        {primaryName}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-5">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Created</p>
+                      <div className="mt-2 flex items-center gap-2 text-sm text-foreground">
+                        <Clock3 className="h-4 w-4 text-primary" />
+                        {createdAtDisplay}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                        Last Sign-In
+                      </p>
+                      <div className="mt-2 flex items-center gap-2 text-sm text-foreground">
+                        <CalendarDays className="h-4 w-4 text-primary" />
+                        {lastSignInDisplay}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                        Stripe Customer
+                      </p>
+                      <div className="mt-2 flex items-center gap-2 text-sm font-medium text-foreground">
+                        <Hash className="h-4 w-4 text-primary" />
+                        {stripeCustomerId}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                        User ID
+                      </p>
+                      <div className="mt-2 flex items-center gap-2 text-sm font-medium text-foreground">
+                        <Hash className="h-4 w-4 text-primary" />
+                        {relatedUserId}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
             </Card>
 
             <Card className="border border-border/60 shadow-sm">
@@ -370,7 +449,50 @@ export default function ProfilePage() {
               </CardHeader>
               <CardContent>
                 {activeSubscription ? (
-                  renderKeyValue(activeSubscription)
+                  <div className="flex flex-col gap-6">
+                    <div className="rounded-xl border border-border/60 bg-muted/30 p-6 shadow-inner">
+                      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                            Active Plan
+                          </p>
+                          <h3 className="mt-2 text-2xl font-semibold text-foreground">{subscriptionPlanName}</h3>
+                          <div className="mt-4 grid gap-3 text-sm text-muted-foreground md:grid-cols-2">
+                            <div className="flex items-center gap-2">
+                              <CalendarDays className="h-4 w-4 text-primary" />
+                              <span>Started {formatDate(subscriptionStartDate)}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-start gap-3 md:items-end">
+                          {subscriptionInvoiceUrl ? (
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={subscriptionInvoiceUrl} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink className="mr-2 h-4 w-4" />
+                                View latest invoice
+                              </a>
+                            </Button>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">No invoice available</span>
+                          )}
+                          <Button
+                            variant="destructive"
+                            onClick={handleCancelSubscription}
+                            disabled={isCancelling}
+                          >
+                            {isCancelling ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Cancelling...
+                              </>
+                            ) : (
+                              'Cancel subscription'
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 ) : (
                   <div className="flex flex-col gap-4">
                     <p className="text-sm text-muted-foreground">
@@ -383,37 +505,6 @@ export default function ProfilePage() {
                 )}
               </CardContent>
             </Card>
-
-            <Card className="border border-border/60 shadow-sm">
-              <CardHeader>
-                <CardTitle>Customer Information</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {customerSummary ? (
-                  renderKeyValue(customerSummary)
-                ) : (
-                  <p className="text-sm text-muted-foreground">No Stripe customer information is available yet.</p>
-                )}
-              </CardContent>
-            </Card>
-
-            {!activeSubscription && subscriptionList.length > 0 && (
-              <Card className="border border-border/60 shadow-sm">
-                <CardHeader>
-                  <CardTitle>Available Subscription History</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {subscriptionList.map((item, index) => (
-                    <div key={index} className="mb-4 last:mb-0">
-                      <div className="mb-2 text-sm font-semibold text-muted-foreground">
-                        Subscription #{index + 1}
-                      </div>
-                      {renderKeyValue(item)}
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
           </div>
         )}
       </div>
