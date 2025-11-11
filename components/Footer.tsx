@@ -7,13 +7,19 @@ export default function Footer() {
   return (
     <footer className="bg-white border-t border-gold-200 mt-auto">
       <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Brand */}
+          <div className='flex flex-col justify-between'>
           <div className="space-y-2">
             <h3 className="text-lg font-bold text-foreground">Meillor</h3>
             <p className="text-sm text-muted-foreground">
               Discover and collect rare coins from around the world.
             </p>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Copyright className="h-4 w-4" />
+          <span>{currentYear} Meillor. All rights reserved.</span>
+        </div>
           </div>
 
           {/* Quick Links */}
@@ -35,22 +41,8 @@ export default function Footer() {
                   Coins
                 </Link>
               </li>
-            </ul>
-          </div>
-
-          {/* Account */}
-          <div className="space-y-2">
-            <h4 className="text-sm font-semibold">Account</h4>
-            <ul className="space-y-1 text-sm">
               <li>
-                <Link href="/auth/login" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Login
-                </Link>
-              </li>
-              <li>
-                <Link href="/auth/register" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Register
-                </Link>
+              <Link href="/membership" className="text-muted-foreground hover:text-foreground transition-colors">Pricing &amp; Plans</Link>
               </li>
             </ul>
           </div>
@@ -71,12 +63,6 @@ export default function Footer() {
               </li>
             </ul>
           </div>
-        </div>
-
-        {/* Copyright */}
-        <div className="mt-8 pt-6 border-t border-gold-200 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-          <Copyright className="h-4 w-4" />
-          <span>{currentYear} Meillor. All rights reserved.</span>
         </div>
       </div>
     </footer>

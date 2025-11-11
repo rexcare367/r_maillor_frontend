@@ -345,10 +345,6 @@ const activeSubscriptionId = useMemo(() => {
                 )}
                 Refresh
               </Button>
-              <Badge variant="outline" className="gap-2 text-xs">
-                <User2 className="h-4 w-4" />
-                Profile ID: {userInfo?.id ?? 'N/A'}
-              </Badge>
             </div>
           </CardContent>
         </Card>

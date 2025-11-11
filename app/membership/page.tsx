@@ -27,6 +27,12 @@ interface PlanRecord extends Record<string, Primitive | Record<string, Primitive
   [key: string]: Primitive | Record<string, Primitive>;
 }
 
+interface PlanDetail {
+  name: string;
+  description?: string;
+  features?: string[];
+}
+
 function formatCurrency(amount?: Primitive, currency?: Primitive) {
   if (typeof amount !== 'number') {
     return amount ? String(amount) : 'Custom pricing';
@@ -52,6 +58,19 @@ export default function MembershipPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [checkoutLoadingPlan, setCheckoutLoadingPlan] = useState<string | null>(null);
+
+  const planDetails: PlanDetail[] = [
+    {
+      name: 'startner',
+      description: 'For those who are just starting out',
+      features: [
+        'Access to all coins',
+        'Access to all coins',
+        'Add 3 coins to your favorites',
+        'receive weekly updates',
+      ],
+    },
+  ];
 
   const fetchPlans = useCallback(async () => {
     setError(null);
@@ -181,6 +200,9 @@ export default function MembershipPage() {
             {plans.map((plan) => {
               const planId = (plan.id ?? plan.nickname ?? plan.name ?? 'plan') as string;
               const planName = (plan.name ?? plan.nickname ?? 'Membership Plan') as string;
+              const planDetail = planDetails.find(
+                ({ name }) => name.trim().toLowerCase() === planName.trim().toLowerCase()
+              );
               const planInterval =
                 (plan.interval_count && plan.interval
                   ? `${plan.interval_count} ${plan.interval}`
@@ -189,6 +211,11 @@ export default function MembershipPage() {
                 (plan.unit_amount as number | undefined) ?? (plan.amount as number | undefined),
                 plan.currency ?? (plan.metadata?.currency as Primitive)
               );
+              const description =
+                (typeof plan.description === 'string' && plan.description.trim().length > 0
+                  ? plan.description
+                  : planDetail?.description) ?? undefined;
+              const features = planDetail?.features ?? [];
 
               const isHighlight = highlightPlanId && plan.id === highlightPlanId;
 
@@ -210,12 +237,12 @@ export default function MembershipPage() {
                       <span className="text-3xl font-bold">{price}</span>
                       <span className="text-sm text-muted-foreground">/ {planInterval}</span>
                     </div>
-                    {plan.description && (
-                      <p className="mt-2 text-sm text-muted-foreground">{plan.description as string}</p>
+                    {description && (
+                      <p className="mt-2 text-sm text-muted-foreground">{description}</p>
                     )}
                   </CardHeader>
                   <CardContent className="space-y-3 text-sm text-muted-foreground">
-                    {plan.metadata && Object.keys(plan.metadata).length > 0 && (
+                    {/* {plan.metadata && Object.keys(plan.metadata).length > 0 && (
                       <div className="space-y-2 rounded-lg border border-border/60 bg-muted/40 p-3">
                         <p className="text-xs font-semibold uppercase tracking-wider text-foreground/80">
                           Plan highlights
@@ -236,13 +263,21 @@ export default function MembershipPage() {
                           ))}
                         </ul>
                       </div>
+                    )} */}
+                    {features.length > 0 && (
+                      <ul className="space-y-2">
+                        {features.map((feature) => (
+                          <li key={feature} className="flex items-start gap-2">
+                            <CheckCircle2 className="mt-0.5 h-4 w-4 text-primary" />
+                            <span className="text-muted-foreground">{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
                     )}
                   </CardContent>
                   <CardFooter className="flex justify-between">
-                    <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                      Plan ID: {plan.id ?? 'N/A'}
-                    </div>
                     <Button
+                    className='w-full'
                       size="sm"
                       disabled={checkoutLoadingPlan === planId}
                       onClick={() => handleCheckout(plan, planId)}
