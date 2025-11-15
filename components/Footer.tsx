@@ -64,6 +64,17 @@ export default function Footer() {
             </ul>
           </div>
         </div>
+        
+        {/* Disclaimer */}
+        <div className="mt-8 pt-6 border-t border-gold-200">
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground">
+              <strong>No financial advice.</strong> Information provided is for informational purposes only. 
+              Information isn&apos;t guaranteed and relies on AuCoffre. Final transaction happens on AuCoffre. 
+              Meillor and AuCoffre aren&apos;t official partners.
+            </p>
+          </div>
+        </div>
       </div>
     </footer>
   );

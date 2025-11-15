@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Toaster } from "@/components/ui/toaster";
 import AxiosAuthProvider from "@/components/AxiosAuthProvider";
+import CookiePolicy from "@/components/CookiePolicy";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -43,6 +44,7 @@ export default function RootLayout({
               <Footer />
             </div>
             <Toaster />
+            <CookiePolicy />
           </AxiosAuthProvider>
         </AuthProvider>
       </body>
