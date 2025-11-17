@@ -2,9 +2,12 @@
 
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Heart, RefreshCw, Star } from "lucide-react"
 import { CountryFlag } from "@/components/CountryFlag"
 import Link from "next/link"
+import { useAuth } from "@/contexts/AuthContext"
+import { useRouter } from "next/navigation"
 import type { Coin } from "@/lib/api/coins"
 
 interface CoinDetailProps {
@@ -14,8 +17,12 @@ interface CoinDetailProps {
 }
 
 export default function CoinDetail({ coin, onBuy, onFollow }: CoinDetailProps) {
+  const { user } = useAuth()
+  const router = useRouter()
   // Calculate target price (10% above current price if not provided)
   const targetPrice = coin.price_eur * 1.1
+  const investmentScore = coin.ai_score ? Math.round(coin.ai_score) : Math.floor(Math.random() * 60) + 40
+  const scoreColor = investmentScore >= 80 ? 'text-green-600' : 'text-purple-600'
   
   // Map AI score to attributes for display
   const attributes = coin.ai_score 
@@ -58,7 +65,12 @@ export default function CoinDetail({ coin, onBuy, onFollow }: CoinDetailProps) {
         {/* Main Title - Mobile */}
         <div className="flex flex-row justify-between items-center">
         <div className="flex justify-start flex-col mb-4">
-          <h1 className="md:text-3xl text-lg font-bold text-gray-900">{coin.name}</h1>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="md:text-3xl text-lg font-bold text-gray-900">{coin.name}</h1>
+            <Badge className="bg-yellow-500 text-yellow-900 border-yellow-600 font-semibold">
+              Unique
+            </Badge>
+          </div>
           <p className="md:text-base text-sm text-gray-600">{coin.sub_name}</p>
         </div>
         <Button variant="outline" className="text-sm">
@@ -152,7 +164,12 @@ export default function CoinDetail({ coin, onBuy, onFollow }: CoinDetailProps) {
           <Card className="bg-white rounded-2xl p-6 border border-gray-200 w-full">
             {/* Title - Desktop Only */}
             <div className="hidden md:block mb-6">
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">{coin.name}</h1>
+              <div className="flex items-center gap-2 flex-wrap mb-1">
+                <h1 className="text-2xl font-bold text-gray-900">{coin.name}</h1>
+                <Badge className="bg-yellow-500 text-yellow-900 border-yellow-600 font-semibold">
+                  Unique
+                </Badge>
+              </div>
               <p className="text-base text-gray-600">{coin.sub_name}</p>
             </div>
 
@@ -162,8 +179,8 @@ export default function CoinDetail({ coin, onBuy, onFollow }: CoinDetailProps) {
               
               {/* Score Display */}
               <div className="text-center mb-6">
-                <div className="text-7xl font-bold text-blue-600 mb-1">
-                  {coin.ai_score ? Math.round(coin.ai_score) : Math.floor(Math.random() * 60) + 40}
+                <div className={`text-7xl font-bold ${scoreColor} mb-1`}>
+                  {investmentScore}
                 </div>
                 <div className="text-base text-gray-500">sur 100</div>
               </div>
@@ -199,7 +216,15 @@ export default function CoinDetail({ coin, onBuy, onFollow }: CoinDetailProps) {
               </Button>
               <Button 
                 className="flex-1 bg-black text-white hover:bg-gold-500 rounded-lg"
-                onClick={() => onBuy?.(coin.id)}
+                onClick={() => {
+                  if (!user) {
+                    router.push('/auth/login')
+                  } else if (coin.product_url) {
+                    window.open(coin.product_url, '_blank')
+                  } else {
+                    onBuy?.(coin.id)
+                  }
+                }}
               >
                 Acheter
               </Button>

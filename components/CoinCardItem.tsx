@@ -2,9 +2,12 @@
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Star, Search, ShoppingCart } from "lucide-react"
 import { CountryFlag } from "./CountryFlag"
 import Link from "next/link"
+import { useAuth } from "@/contexts/AuthContext"
+import { useRouter } from "next/navigation"
 
 interface CoinCardItemProps {
   coin: {
@@ -26,16 +29,43 @@ interface CoinCardItemProps {
     origin_country?: string
     ranking?: number
     is_favorite?: boolean
+    product_url?: string
   }
   onBuy?: (coinId: string) => void
   onToggleFavorite?: (coinId: string, isFavorite: boolean) => void
 }
 
 export default function CoinCardItem({ coin, onBuy, onToggleFavorite }: CoinCardItemProps) {
+  const { user } = useAuth()
+  const router = useRouter()
   const premium = coin.premium || Math.random() * 5 + 1
+  const investmentScore = coin.ai_score || Math.floor(Math.random() * 40) + 60
+  const scoreColor = investmentScore >= 80 ? 'text-green-600' : 'text-purple-600'
 
   const handleToggleFavorite = () => {
+    if (!user) {
+      router.push('/auth/login')
+      return
+    }
     onToggleFavorite?.(coin.id, !coin.is_favorite)
+  }
+
+  const handleCoinClick = () => {
+    if (!user) {
+      router.push('/auth/login')
+    } else {
+      router.push(`/coins/${coin.id}`)
+    }
+  }
+
+  const handleBuy = () => {
+    if (!user) {
+      router.push('/auth/login')
+    } else if (coin.product_url) {
+      window.open(coin.product_url, '_blank')
+    } else {
+      onBuy?.(coin.id)
+    }
   }
 
   return (
@@ -43,32 +73,39 @@ export default function CoinCardItem({ coin, onBuy, onToggleFavorite }: CoinCard
       {/* Top Section */}
       <div className="flex items-center justify-between mb-4">
         <span className="text-lg font-bold text-gray-800">#{coin.ranking || 1}</span>
-        <div className="text-xl font-bold text-blue-600">
-          {coin.ai_score || Math.floor(Math.random() * 40) + 60}/100
+        <div className={`text-xl font-bold ${scoreColor}`}>
+          {investmentScore}/100
         </div>
-        <button 
-          onClick={handleToggleFavorite}
-          className="transition-colors"
-          aria-label={coin.is_favorite ? "Remove from favorites" : "Add to favorites"}
-        >
-          <Star 
-            className={`w-5 h-5 cursor-pointer transition-colors ${
-              coin.is_favorite 
-                ? 'text-yellow-400 stroke-yellow-400 fill-yellow-400 hover:text-yellow-500 hover:fill-yellow-500' 
-                : 'text-gray-400 stroke-gray-400 fill-none hover:text-yellow-400 hover:fill-yellow-200'
-            }`} 
-          />
-        </button>
+        {user && (
+          <button 
+            onClick={handleToggleFavorite}
+            className="transition-colors"
+            aria-label={coin.is_favorite ? "Remove from favorites" : "Add to favorites"}
+          >
+            <Star 
+              className={`w-5 h-5 cursor-pointer transition-colors ${
+                coin.is_favorite 
+                  ? 'text-yellow-400 stroke-yellow-400 fill-yellow-400 hover:text-yellow-500 hover:fill-yellow-500' 
+                  : 'text-gray-400 stroke-gray-400 fill-none hover:text-yellow-400 hover:fill-yellow-200'
+              }`} 
+            />
+          </button>
+        )}
       </div>
 
       {/* Coin Title and Subtitle */}
-      <div className="text-center">
-        <h3 className="text-xl font-bold text-amber-800 mb-1">{coin.name}</h3>
+      <div className="text-center cursor-pointer" onClick={handleCoinClick}>
+        <div className="flex items-center justify-center gap-2 flex-wrap mb-1">
+          <h3 className="text-xl font-bold text-amber-800">{coin.name}</h3>
+          <Badge className="bg-yellow-500 text-yellow-900 border-yellow-600 font-semibold text-xs">
+            Unique
+          </Badge>
+        </div>
         <p className="text-sm text-gray-600">{coin.sub_name}</p>
       </div>
 
       {/* Coin Image */}
-      <div className="flex justify-center">
+      <div className="flex justify-center cursor-pointer" onClick={handleCoinClick}>
         <div className="w-32 h-32 rounded-full overflow-hidden">
           <img 
             src={coin.front_picture_url || "/placeholder.svg"} 
@@ -153,7 +190,7 @@ export default function CoinCardItem({ coin, onBuy, onToggleFavorite }: CoinCard
           </Link>
           <Button 
             className="flex-1 bg-black hover:bg-gold-500 hover:text-black text-white text-sm rounded-lg"
-            onClick={() => onBuy?.(coin.id)}
+            onClick={handleBuy}
           >
             <ShoppingCart className="w-3 h-3 mr-1" />
             Acheter

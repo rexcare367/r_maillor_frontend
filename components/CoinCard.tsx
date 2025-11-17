@@ -23,6 +23,7 @@ interface CoinCardProps {
     origin_country?: string
     ranking?: number
     is_favorite?: boolean
+    product_url?: string
   }
   onBuy?: (coinId: string) => void
   onToggleFavorite?: (coinId: string, isFavorite: boolean) => void
