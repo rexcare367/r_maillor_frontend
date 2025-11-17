@@ -30,6 +30,8 @@ interface CoinCardItemProps {
     ranking?: number
     is_favorite?: boolean
     product_url?: string
+    updated_at?: string | null
+    scraped_at?: string
   }
   onBuy?: (coinId: string) => void
   onToggleFavorite?: (coinId: string, isFavorite: boolean) => void
@@ -41,6 +43,33 @@ export default function CoinCardItem({ coin, onBuy, onToggleFavorite }: CoinCard
   const premium = coin.premium || Math.random() * 5 + 1
   const investmentScore = coin.ai_score || Math.floor(Math.random() * 40) + 60
   const scoreColor = investmentScore >= 80 ? 'text-green-600' : 'text-purple-600'
+
+  // Format last update time
+  const formatLastUpdate = () => {
+    const updateTime = coin.updated_at || coin.scraped_at
+    if (!updateTime) return null
+
+    const updateDate = new Date(updateTime)
+    const now = new Date()
+    const diffMs = now.getTime() - updateDate.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 1) return "À l'instant"
+    if (diffMins < 60) return `Il y a ${diffMins} min`
+    if (diffHours < 24) return `Il y a ${diffHours}h`
+    if (diffDays < 7) return `Il y a ${diffDays}j`
+    
+    // For older dates, show formatted date
+    return updateDate.toLocaleDateString('fr-FR', { 
+      day: 'numeric', 
+      month: 'short',
+      year: diffDays >= 365 ? 'numeric' : undefined
+    })
+  }
+
+  const lastUpdate = formatLastUpdate()
 
   const handleToggleFavorite = () => {
     if (!user) {
@@ -195,6 +224,13 @@ export default function CoinCardItem({ coin, onBuy, onToggleFavorite }: CoinCard
             <ShoppingCart className="w-3 h-3 mr-1" />
             Acheter
           </Button>
+        </div>
+      )}
+
+      {/* Last Update Time - Bottom Center */}
+      {lastUpdate && (
+        <div className="text-center mt-3">
+          <span className="text-xs text-gray-500">Mis à jour {lastUpdate}</span>
         </div>
       )}
     </Card>

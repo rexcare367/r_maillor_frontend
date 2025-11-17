@@ -24,6 +24,8 @@ interface CoinCardProps {
     ranking?: number
     is_favorite?: boolean
     product_url?: string
+    updated_at?: string | null
+    scraped_at?: string
   }
   onBuy?: (coinId: string) => void
   onToggleFavorite?: (coinId: string, isFavorite: boolean) => void
