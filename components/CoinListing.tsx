@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 
 interface CoinListingProps {
   page?: number;
@@ -36,7 +37,6 @@ export default function CoinListing({
   const router = useRouter();
   const { coins: apiCoins, loading, error, refetch } = useCoins({ page, limit });
   const [localCoins, setLocalCoins] = useState(apiCoins);
-  const [favoriteLoading, setFavoriteLoading] = useState<boolean>(false);
   const [showPremiumDialog, setShowPremiumDialog] = useState(false);
   const [pendingCoinId, setPendingCoinId] = useState<string | null>(null);
   const [favoriteCount, setFavoriteCount] = useState(0);
@@ -139,6 +139,23 @@ export default function CoinListing({
     setPendingCoinId(null);
   };
 
+  const handleRefetch = async () => {
+    try {
+      await refetch();
+      toast({
+        title: "Actualisé",
+        description: "Les données ont été mises à jour",
+      });
+    } catch (err) {
+      console.error('Error refetching:', err);
+      toast({
+        title: "Erreur",
+        description: "Impossible de rafraîchir les données",
+        variant: "destructive",
+      });
+    }
+  };
+
   // After user pays and comes back, add the pending favorite
   useEffect(() => {
     const addPendingFavorite = async () => {
@@ -187,8 +204,20 @@ export default function CoinListing({
         {showHeader && (
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-foreground">Top Or</h2>
-            <div className="text-sm text-muted-foreground">
-              {loading ? "Chargement..." : `Mise à jour il y a ${Math.floor(Math.random() * 24)} heures`}
+            <div className="flex items-center gap-3">
+              <div className="text-sm text-muted-foreground">
+                {loading ? "Chargement..." : `Mise à jour il y a ${Math.floor(Math.random() * 24)} heures`}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefetch}
+                disabled={loading}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                Actualiser
+              </Button>
             </div>
           </div>
         )}
@@ -203,7 +232,7 @@ export default function CoinListing({
           </div>
         )}
 
-        {loading || favoriteLoading ? (
+        {loading ? (
           <Loading 
             message="Chargement des pièces..."
             size="md"
